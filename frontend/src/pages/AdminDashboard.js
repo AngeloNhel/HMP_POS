@@ -1,6 +1,30 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import API from "../services/api";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+import { Bar, Line } from "react-chartjs-2";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  PointElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 function AdminDashboard() {
 
@@ -67,6 +91,32 @@ function AdminDashboard() {
     if (stock <= 5) return "LOW";
     return "OK";
   };
+
+  /* ================= GLOBAL SALES SUMMARY ================= */
+  const [globalSummary, setGlobalSummary] = useState({
+    today: 0,
+    week: 0,
+    month: 0,
+    topProduct: null,
+    topCashier: null,
+    trend: [],
+    topProducts: []
+  });
+
+  const fetchGlobalSummary = async () => {
+    try {
+      const res = await API.get("/sales/summary");
+      setGlobalSummary(res.data);
+    } catch (err) {
+      console.error("Summary fetch error");
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+    fetchProducts();
+    fetchGlobalSummary();   // 👈 ADD THIS
+  }, []);
 
   /* ================= USER FUNCTIONS ================= */
   const handleUserChange = (e) => {
@@ -216,19 +266,144 @@ function AdminDashboard() {
 
         {/* DASHBOARD CARDS */}
         <div className="dashboard-cards">
-          <div className="dashboard-card">
-            <h3>Total Products</h3>
-            <h1>{products.length}</h1>
-          </div>
-          <div className="dashboard-card">
-            <h3>Low Stock</h3>
-            <h1>{lowStock.length}</h1>
-          </div>
-          <div className="dashboard-card">
-            <h3>Out of Stock</h3>
-            <h1>{outOfStock.length}</h1>
-          </div>
+
+        {/* PRODUCT CARDS */}
+        <div className="dashboard-card">
+          <h3>Total Products</h3>
+          <h1>{products.length}</h1>
         </div>
+
+        <div className="dashboard-card">
+          <h3>Low Stock</h3>
+          <h1>{lowStock.length}</h1>
+        </div>
+
+        <div className="dashboard-card">
+          <h3>Out of Stock</h3>
+          <h1>{outOfStock.length}</h1>
+        </div>
+
+        {/* SALES CARDS */}
+        <div className="dashboard-card report-card">
+          <h3>Sales Today</h3>
+          <h1>₱{globalSummary.today}</h1>
+        </div>
+
+        <div className="dashboard-card report-card">
+          <h3>Sales This Week</h3>
+          <h1>₱{globalSummary.week}</h1>
+        </div>
+
+        <div className="dashboard-card report-card">
+          <h3>Sales This Month</h3>
+          <h1>₱{globalSummary.month}</h1>
+        </div>
+
+        <div className="dashboard-card report-card">
+          <h3>Top Selling Product</h3>
+          <h1>
+            {globalSummary.topProduct
+              ? globalSummary.topProduct.name
+              : "No Data"}
+          </h1>
+        </div>
+
+        <div className="dashboard-card report-card">
+          <h3>Top Cashier</h3>
+          <h1>
+            {globalSummary.topCashier
+              ? globalSummary.topCashier.username
+              : "No Data"}
+          </h1>
+        </div>
+      </div>
+
+      <div className="charts-row">
+
+  {/* 1️⃣ Sales Overview */}
+  <div className="chart-box">
+    <h2>Sales Overview</h2>
+    <div className="chart-container">
+      <Bar
+        data={{
+          labels: ["Today", "This Week", "This Month"],
+          datasets: [
+            {
+              label: "Sales (₱)",
+              data: [
+                globalSummary.today,
+                globalSummary.week,
+                globalSummary.month,
+              ],
+              backgroundColor: "#4facfe",
+            },
+          ],
+        }}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+        }}
+      />
+    </div>
+  </div>
+
+  {/* 2️⃣ Sales Trend */}
+  <div className="chart-box">
+    <h2>Last 7 Days Trend</h2>
+    <div className="chart-container">
+      <Line
+        data={{
+          labels: globalSummary.trend.map((t) =>
+            new Date(t.date).toLocaleDateString()
+          ),
+          datasets: [
+            {
+              label: "Daily Sales",
+              data: globalSummary.trend.map((t) => t.total),
+              borderColor: "#2a5298",
+              backgroundColor: "rgba(42,82,152,0.2)",
+              tension: 0.4,
+              fill: true,
+            },
+          ],
+        }}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+        }}
+      />
+    </div>
+  </div>
+
+  {/* 3️⃣ Top 5 Products */}
+  <div className="chart-box">
+    <h2>Top 5 Products</h2>
+    <div className="chart-container">
+      <Bar
+        data={{
+          labels: globalSummary.topProducts.map(p => p.name),
+          datasets: [
+            {
+              label: "Revenue (₱)",
+              data: globalSummary.topProducts.map(p => p.total_revenue),
+              backgroundColor: "#9b23ea",
+            }
+          ]
+        }}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: "y",
+          plugins: {
+            legend: { display: false }
+          }
+        }}
+      />
+    </div>
+  </div>
+
+</div>
+
 
         {/* USER MANAGEMENT */}
         <h3>{userForm.id ? "Update User" : "Create User"}</h3>

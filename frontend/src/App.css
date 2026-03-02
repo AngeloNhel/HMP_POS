@@ -469,13 +469,7 @@ body {
   background: #f2f4fa;
 }
 
-/* CHART */
-canvas {
-  margin-top: 30px;
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-}
+
 
 /* DASHBOARD CARD GRID */
 .dashboard-cards {
@@ -642,3 +636,48 @@ canvas {
   background: #f7f9ff;
 }
 
+/* ===== 3 COLUMN CHART LAYOUT ===== */
+
+.charts-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);  /* 3 equal columns */
+  gap: 30px;
+  margin-top: 50px;
+}
+
+.chart-box {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+.chart-box h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #1e3c72;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Tablet */
+@media (max-width: 1100px) {
+  .charts-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Mobile */
+@media (max-width: 700px) {
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -97,30 +97,80 @@ exports.getReport = async (req, res) => {
 
 exports.getSummary = async (req, res) => {
   try {
+    //TOP 5 PRODUCTS BY REVENUE
+    const [topProducts] = await db.query(`
+      SELECT 
+        p.name,
+        SUM(si.subtotal) total_revenue
+      FROM sale_items si
+      JOIN products p ON si.product_id = p.id
+      GROUP BY p.id
+      ORDER BY total_revenue DESC
+      LIMIT 5
+    `);
+    // TODAY
     const [today] = await db.query(`
       SELECT IFNULL(SUM(total_amount),0) total
       FROM sales
       WHERE DATE(created_at) = CURDATE()
     `);
 
+    // WEEK
     const [week] = await db.query(`
       SELECT IFNULL(SUM(total_amount),0) total
       FROM sales
       WHERE YEARWEEK(created_at,1) = YEARWEEK(CURDATE(),1)
     `);
 
-    const [items] = await db.query(`
-      SELECT IFNULL(SUM(quantity),0) total
-      FROM sale_items
+    // MONTH
+    const [month] = await db.query(`
+      SELECT IFNULL(SUM(total_amount),0) total
+      FROM sales
+      WHERE MONTH(created_at) = MONTH(CURDATE())
+      AND YEAR(created_at) = YEAR(CURDATE())
+    `);
+
+    // 🔥 TOP SELLING PRODUCT
+    const [topProduct] = await db.query(`
+      SELECT p.name, SUM(si.quantity) total_qty
+      FROM sale_items si
+      JOIN products p ON si.product_id = p.id
+      GROUP BY p.id
+      ORDER BY total_qty DESC
+      LIMIT 1
+    `);
+
+    // 🔥 TOP CASHIER
+    const [topCashier] = await db.query(`
+      SELECT u.username, SUM(s.total_amount) total_sales
+      FROM sales s
+      JOIN users u ON s.user_id = u.id
+      GROUP BY u.id
+      ORDER BY total_sales DESC
+      LIMIT 1
+    `);
+
+    // 🔥 SALES TREND (Last 7 Days)
+    const [trend] = await db.query(`
+      SELECT DATE(created_at) date,
+             SUM(total_amount) total
+      FROM sales
+      WHERE created_at >= CURDATE() - INTERVAL 6 DAY
+      GROUP BY DATE(created_at)
+      ORDER BY date ASC
     `);
 
     res.json({
       today: today[0].total,
       week: week[0].total,
-      items: items[0].total,
+      month: month[0].total,
+      topProduct: topProduct[0] || null,
+      topCashier: topCashier[0] || null,
+      trend,
+      topProducts
     });
-
   } catch (err) {
+    console.log(err);
     res.status(500).json({ message: "Summary error" });
   }
 };
