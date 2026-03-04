@@ -67,21 +67,36 @@ exports.getReport = async (req, res) => {
     SELECT 
       s.id AS trans_no,
       p.code,
+      p.name AS product_name,
       p.description,
       si.unit,
       si.quantity,
       p.price,
       si.subtotal AS total,
-      TIME(s.created_at) AS time
+      s.created_at AS datetime
     FROM sales s
     JOIN sale_items si ON s.id = si.sale_id
     JOIN products p ON si.product_id = p.id
   `;
 
   const values = [];
+  let hasWhere = false;
 
+  // CASHIER: Only their own sales
+  if (req.user.role === "cashier") {
+    sql += " WHERE s.user_id = ?";
+    values.push(req.user.id);
+    hasWhere = true;
+  }
+
+  //  DATE + TIME FILTER (IMPORTANT)
   if (start && end) {
-    sql += " WHERE DATE(s.created_at) BETWEEN ? AND ?";
+    if (hasWhere) {
+      sql += " AND s.created_at BETWEEN ? AND ?";
+    } else {
+      sql += " WHERE s.created_at BETWEEN ? AND ?";
+    }
+
     values.push(start, end);
   }
 
@@ -91,36 +106,46 @@ exports.getReport = async (req, res) => {
     const [report] = await db.query(sql, values);
     res.json(report);
   } catch (err) {
+    console.log(err);
     res.status(500).json({ message: "Report error" });
   }
 };
 
 exports.getSummary = async (req, res) => {
   try {
-    //TOP 5 PRODUCTS BY REVENUE
+
+    const isCashier = req.user.role === "cashier";
+    const userId = req.user.id;
+
+    // TOP 5 PRODUCTS
     const [topProducts] = await db.query(`
       SELECT 
         p.name,
         SUM(si.subtotal) total_revenue
       FROM sale_items si
       JOIN products p ON si.product_id = p.id
+      JOIN sales s ON si.sale_id = s.id
+      ${isCashier ? "WHERE s.user_id = ?" : ""}
       GROUP BY p.id
       ORDER BY total_revenue DESC
       LIMIT 5
-    `);
+    `, isCashier ? [userId] : []);
+
     // TODAY
     const [today] = await db.query(`
       SELECT IFNULL(SUM(total_amount),0) total
       FROM sales
       WHERE DATE(created_at) = CURDATE()
-    `);
+      ${isCashier ? "AND user_id = ?" : ""}
+    `, isCashier ? [userId] : []);
 
     // WEEK
     const [week] = await db.query(`
       SELECT IFNULL(SUM(total_amount),0) total
       FROM sales
       WHERE YEARWEEK(created_at,1) = YEARWEEK(CURDATE(),1)
-    `);
+      ${isCashier ? "AND user_id = ?" : ""}
+    `, isCashier ? [userId] : []);
 
     // MONTH
     const [month] = await db.query(`
@@ -128,19 +153,22 @@ exports.getSummary = async (req, res) => {
       FROM sales
       WHERE MONTH(created_at) = MONTH(CURDATE())
       AND YEAR(created_at) = YEAR(CURDATE())
-    `);
+      ${isCashier ? "AND user_id = ?" : ""}
+    `, isCashier ? [userId] : []);
 
-    // 🔥 TOP SELLING PRODUCT
+    // TOP SELLING PRODUCT
     const [topProduct] = await db.query(`
       SELECT p.name, SUM(si.quantity) total_qty
       FROM sale_items si
       JOIN products p ON si.product_id = p.id
+      JOIN sales s ON si.sale_id = s.id
+      ${isCashier ? "WHERE s.user_id = ?" : ""}
       GROUP BY p.id
       ORDER BY total_qty DESC
       LIMIT 1
-    `);
+    `, isCashier ? [userId] : []);
 
-    // 🔥 TOP CASHIER
+    // TOP CASHIER
     const [topCashier] = await db.query(`
       SELECT u.username, SUM(s.total_amount) total_sales
       FROM sales s
@@ -150,15 +178,16 @@ exports.getSummary = async (req, res) => {
       LIMIT 1
     `);
 
-    // 🔥 SALES TREND (Last 7 Days)
+      // SALES TREND
     const [trend] = await db.query(`
       SELECT DATE(created_at) date,
              SUM(total_amount) total
       FROM sales
       WHERE created_at >= CURDATE() - INTERVAL 6 DAY
+      ${isCashier ? "AND user_id = ?" : ""}
       GROUP BY DATE(created_at)
       ORDER BY date ASC
-    `);
+    `, isCashier ? [userId] : []);
 
     res.json({
       today: today[0].total,
@@ -169,6 +198,7 @@ exports.getSummary = async (req, res) => {
       trend,
       topProducts
     });
+
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Summary error" });

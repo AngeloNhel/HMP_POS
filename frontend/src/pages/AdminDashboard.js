@@ -28,7 +28,6 @@ ChartJS.register(
 
 function AdminDashboard() {
 
-  /* ================= USER STATE ================= */
   const [users, setUsers] = useState([]);
   const [userSearch, setUserSearch] = useState("");
   const [userForm, setUserForm] = useState({
@@ -38,7 +37,6 @@ function AdminDashboard() {
     role: "cashier",
   });
 
-  /* ================= PRODUCT STATE ================= */
   const [products, setProducts] = useState([]);
   const [productSearch, setProductSearch] = useState("");
   const [productForm, setProductForm] = useState({
@@ -48,7 +46,6 @@ function AdminDashboard() {
     stock: "",
   });
 
-  /* ================= SALES MODAL STATE ================= */
   const [showModal, setShowModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [salesData, setSalesData] = useState([]);
@@ -63,7 +60,6 @@ function AdminDashboard() {
 
   const [message, setMessage] = useState("");
 
-  /* ================= FETCH DATA ================= */
   const fetchUsers = async () => {
     const res = await API.get("/auth/users");
     setUsers(res.data);
@@ -79,7 +75,6 @@ function AdminDashboard() {
     fetchProducts();
   }, []);
 
-  /* ================= STOCK STYLE (ADDED ONLY) ================= */
   const getStockStyle = (stock) => {
     if (stock === 0) return { color: "red", fontWeight: "bold" };
     if (stock <= 5) return { color: "orange", fontWeight: "bold" };
@@ -92,7 +87,6 @@ function AdminDashboard() {
     return "OK";
   };
 
-  /* ================= GLOBAL SALES SUMMARY ================= */
   const [globalSummary, setGlobalSummary] = useState({
     today: 0,
     week: 0,
@@ -115,10 +109,9 @@ function AdminDashboard() {
   useEffect(() => {
     fetchUsers();
     fetchProducts();
-    fetchGlobalSummary();   // 👈 ADD THIS
+    fetchGlobalSummary();   
   }, []);
 
-  /* ================= USER FUNCTIONS ================= */
   const handleUserChange = (e) => {
     setUserForm({ ...userForm, [e.target.name]: e.target.value });
   };
@@ -163,7 +156,6 @@ function AdminDashboard() {
     fetchUsers();
   };
 
-  /* ================= SALES FUNCTIONS ================= */
   const handleViewSales = async (user) => {
     if (user.role !== "cashier") return;
 
@@ -192,7 +184,6 @@ function AdminDashboard() {
     });
   };
 
-  /* ================= PRODUCT FUNCTIONS ================= */
   const handleProductChange = (e) => {
     setProductForm({ ...productForm, [e.target.name]: e.target.value });
   };
@@ -243,7 +234,6 @@ function AdminDashboard() {
     fetchProducts();
   };
 
-  /* ================= FILTER ================= */
   const filteredUsers = users.filter((u) =>
     u.username.toLowerCase().includes(userSearch.toLowerCase())
   );
@@ -264,10 +254,8 @@ function AdminDashboard() {
 
         {message && <div className="message success">{message}</div>}
 
-        {/* DASHBOARD CARDS */}
         <div className="dashboard-cards">
 
-        {/* PRODUCT CARDS */}
         <div className="dashboard-card">
           <h3>Total Products</h3>
           <h1>{products.length}</h1>
@@ -283,7 +271,6 @@ function AdminDashboard() {
           <h1>{outOfStock.length}</h1>
         </div>
 
-        {/* SALES CARDS */}
         <div className="dashboard-card report-card">
           <h3>Sales Today</h3>
           <h1>₱{globalSummary.today}</h1>
@@ -319,93 +306,87 @@ function AdminDashboard() {
       </div>
 
       <div className="charts-row">
+          <div className="chart-box">
+            <h2>Sales Overview</h2>
+            <div className="chart-container">
+              <Bar
+                data={{
+                  labels: ["Today", "This Week", "This Month"],
+                  datasets: [
+                    {
+                      label: "Sales (₱)",
+                      data: [
+                        globalSummary.today,
+                        globalSummary.week,
+                        globalSummary.month,
+                      ],
+                      backgroundColor: "#4facfe",
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                }}
+              />
+            </div>
+          </div>
 
-  {/* 1️⃣ Sales Overview */}
-  <div className="chart-box">
-    <h2>Sales Overview</h2>
-    <div className="chart-container">
-      <Bar
-        data={{
-          labels: ["Today", "This Week", "This Month"],
-          datasets: [
-            {
-              label: "Sales (₱)",
-              data: [
-                globalSummary.today,
-                globalSummary.week,
-                globalSummary.month,
-              ],
-              backgroundColor: "#4facfe",
-            },
-          ],
-        }}
-        options={{
-          responsive: true,
-          maintainAspectRatio: false,
-        }}
-      />
-    </div>
-  </div>
+          <div className="chart-box">
+            <h2>Last 7 Days Trend</h2>
+            <div className="chart-container">
+              <Line
+                data={{
+                  labels: globalSummary.trend.map((t) =>
+                    new Date(t.date).toLocaleDateString()
+                  ),
+                  datasets: [
+                    {
+                      label: "Daily Sales",
+                      data: globalSummary.trend.map((t) => t.total),
+                      borderColor: "#2a5298",
+                      backgroundColor: "rgba(42,82,152,0.2)",
+                      tension: 0.4,
+                      fill: true,
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                }}
+              />
+            </div>
+          </div>
 
-  {/* 2️⃣ Sales Trend */}
-  <div className="chart-box">
-    <h2>Last 7 Days Trend</h2>
-    <div className="chart-container">
-      <Line
-        data={{
-          labels: globalSummary.trend.map((t) =>
-            new Date(t.date).toLocaleDateString()
-          ),
-          datasets: [
-            {
-              label: "Daily Sales",
-              data: globalSummary.trend.map((t) => t.total),
-              borderColor: "#2a5298",
-              backgroundColor: "rgba(42,82,152,0.2)",
-              tension: 0.4,
-              fill: true,
-            },
-          ],
-        }}
-        options={{
-          responsive: true,
-          maintainAspectRatio: false,
-        }}
-      />
-    </div>
-  </div>
-
-  {/* 3️⃣ Top 5 Products */}
-  <div className="chart-box">
-    <h2>Top 5 Products</h2>
-    <div className="chart-container">
-      <Bar
-        data={{
-          labels: globalSummary.topProducts.map(p => p.name),
-          datasets: [
-            {
-              label: "Revenue (₱)",
-              data: globalSummary.topProducts.map(p => p.total_revenue),
-              backgroundColor: "#9b23ea",
-            }
-          ]
-        }}
-        options={{
-          responsive: true,
-          maintainAspectRatio: false,
-          indexAxis: "y",
-          plugins: {
-            legend: { display: false }
-          }
-        }}
-      />
-    </div>
-  </div>
-
-</div>
+          <div className="chart-box">
+            <h2>Top 5 Products</h2>
+            <div className="chart-container">
+              <Bar
+                data={{
+                  labels: globalSummary.topProducts.map(p => p.name),
+                  datasets: [
+                    {
+                      label: "Revenue (₱)",
+                      data: globalSummary.topProducts.map(p => p.total_revenue),
+                      backgroundColor: "#9b23ea",
+                    }
+                  ]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  indexAxis: "y",
+                  plugins: {
+                    legend: { display: false }
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
 
 
-        {/* USER MANAGEMENT */}
         <h3>{userForm.id ? "Update User" : "Create User"}</h3>
 
         <form onSubmit={handleUserSubmit}>
@@ -475,7 +456,6 @@ function AdminDashboard() {
 
         <hr />
 
-        {/* PRODUCT MANAGEMENT */}
         <h3>{productForm.id ? "Update Product" : "Create Product"}</h3>
 
         <form onSubmit={handleProductSubmit}>
@@ -548,7 +528,6 @@ function AdminDashboard() {
         </table>
       </div>
 
-      {/* SALES MODAL */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">

@@ -2,9 +2,7 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// ========================
-// CREATE USER (ADMIN)
-// ========================
+// create admin
 exports.createUser = async (req, res) => {
   const { username, password, role } = req.body;
 
@@ -37,9 +35,7 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// ========================
-// LOGIN
-// ========================
+// login
 exports.login = async (req, res) => {
   const { username, password } = req.body;
 
@@ -66,7 +62,11 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { 
+        id: user.id, 
+        role: user.role,
+        username: user.username   
+      },
       "secret",
       { expiresIn: "1d" }
     );
@@ -79,9 +79,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// ========================
-// GET USERS
-// ========================
+// fetch users
 exports.getUsers = async (req, res) => {
   try {
     const [users] = await db.query(
@@ -96,9 +94,7 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-// ========================
-// UPDATE USER
-// ========================
+// update users
 exports.updateUser = async (req, res) => {
   const { id } = req.params;
   const { username, role, password } = req.body;
@@ -134,9 +130,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// ========================
-// DELETE USER
-// ========================
+// delete users
 exports.deleteUser = async (req, res) => {
   const { id } = req.params;
 

@@ -1,4 +1,3 @@
-/* ===== GLOBAL ===== */
 
 * {
   box-sizing: border-box;
@@ -11,7 +10,6 @@ body {
   color: #333;
 }
 
-/* ===== NAVBAR ===== */
 
 .navbar {
   background: linear-gradient(90deg, #1e3c72, #2a5298);
@@ -42,7 +40,6 @@ body {
   background: #d9363e;
 }
 
-/* ===== AUTH PAGES (LOGIN) ===== */
 
 .container {
   display: flex;
@@ -115,8 +112,6 @@ body {
   text-decoration: underline;
 }
 
-/* ===== DASHBOARD ===== */
-
 .dashboard {
   padding: 40px;
   max-width: 1200px;
@@ -137,7 +132,6 @@ body {
   color: #444;
 }
 
-/* ===== DASHBOARD FORM ===== */
 
 .dashboard form {
   display: flex;
@@ -165,7 +159,6 @@ body {
   transition: 0.3s ease;
 }
 
-/* Primary Button */
 .dashboard button[type="submit"] {
   background: #2a5298;
   color: white;
@@ -175,13 +168,11 @@ body {
   background: #1e3c72;
 }
 
-/* ===== TABLE ===== */
 
-/* ===== LEFT ALIGN ACTION BUTTONS ===== */
 
 .actions-cell {
   display: flex;
-  justify-content: flex-start;  /* 👈 LEFT SIDE */
+  justify-content: flex-start; 
   align-items: center;
   gap: 8px;
 }
@@ -219,7 +210,6 @@ body {
 }
 
 
-/* ===== ACTION BUTTONS ===== */
 
 .dashboard table button {
   padding: 6px 10px;
@@ -231,7 +221,6 @@ body {
   font-weight: 600;
 }
 
-/* ================= ACTION BUTTONS ================= */
 
 .btn {
   padding: 6px 12px;
@@ -244,7 +233,6 @@ body {
   color: white;
 }
 
-/* Edit - Yellow */
 .btn-edit {
   background: #f0ad4e;
 }
@@ -253,7 +241,6 @@ body {
   background: #ec971f;
 }
 
-/* Delete - Red */
 .btn-delete {
   background: #e74c3c;
 }
@@ -262,7 +249,6 @@ body {
   background: #c0392b;
 }
 
-/* View Sales - Blue */
 .btn-view {
   background: #3498db;
 }
@@ -271,7 +257,6 @@ body {
   background: #2980b9;
 }
 
-/* Restock - Green */
 .btn-restock {
   background: #2ecc71;
 }
@@ -280,7 +265,6 @@ body {
   background: #27ae60;
 }
 
-/* ===== ALERT MESSAGES ===== */
 
 .message {
   padding: 10px;
@@ -299,7 +283,6 @@ body {
   color: #c82333;
 }
 
-/* ===== RESPONSIVE ===== */
 
 @media (max-width: 768px) {
   .dashboard form {
@@ -317,7 +300,6 @@ body {
   }
 }
 
-/* ===== POS MODERN DESIGN ===== */
 
 .pos-container {
   padding: 30px 50px;
@@ -325,7 +307,6 @@ body {
   min-height: 100vh;
 }
 
-/* SUMMARY CARDS */
 .summary-cards {
   display: flex;
   gap: 20px;
@@ -343,7 +324,6 @@ body {
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
 }
 
-/* SEARCH */
 .pos-container input[type="text"] {
   padding: 10px 15px;
   width: 300px;
@@ -352,7 +332,6 @@ body {
   margin-bottom: 20px;
 }
 
-/* PRODUCT GRID */
 .products {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -392,7 +371,6 @@ body {
   background: #1e3c72;
 }
 
-/* CART */
 .cart-section {
   background: white;
   padding: 20px;
@@ -406,7 +384,6 @@ body {
   color: #1e3c72;
 }
 
-/* PAYMENT INPUT */
 .pos-container input[type="number"] {
   padding: 10px;
   border-radius: 8px;
@@ -415,7 +392,6 @@ body {
   width: 200px;
 }
 
-/* BUTTONS */
 .pos-container button {
   padding: 10px 18px;
   border-radius: 8px;
@@ -443,7 +419,6 @@ body {
   background: #e0a800;
 }
 
-/* REPORT TABLE */
 .pos-container table {
   width: 100%;
   border-collapse: collapse;
@@ -471,7 +446,6 @@ body {
 
 
 
-/* DASHBOARD CARD GRID */
 .dashboard-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -479,7 +453,6 @@ body {
   margin-bottom: 30px;
 }
 
-/* INDIVIDUAL CARD */
 .dashboard-card {
   background: linear-gradient(135deg, #5f72bd, #9b23ea);
   color: white;
@@ -496,7 +469,6 @@ body {
   font-size: 32px;
 }
 
-/* REPORT CARD SPECIAL */
 .report-card {
   background: linear-gradient(135deg, #4facfe, #00f2fe);
 }
@@ -526,7 +498,6 @@ body {
   background: #142850;
 }
 
-/* REPORT SECTION */
 .report-section {
   background: white;
   padding: 25px;
@@ -534,7 +505,6 @@ body {
   box-shadow: 0 6px 15px rgba(0,0,0,0.05);
 }
 
-/* ===== MODAL ===== */
 
 .modal-overlay {
   position: fixed;
@@ -590,7 +560,6 @@ body {
   background: #1e3c72;
 }
 
-/* ================= MODAL TABLE FIX ================= */
 
 .modal-table-wrapper {
   max-height: 400px;
@@ -600,7 +569,6 @@ body {
   border: 1px solid #e0e0e0;
 }
 
-/* Reset dashboard table influence */
 .modal table {
   width: 100%;
   min-width: 750px;
@@ -608,7 +576,6 @@ body {
   background: white;
 }
 
-/* Header */
 .modal table thead {
   background: #1e3c72;
   color: white;
@@ -624,24 +591,20 @@ body {
   border-bottom: 2px solid #16315c;
 }
 
-/* Body */
 .modal table td {
   padding: 10px;
   font-size: 13px;
   border-bottom: 1px solid #f0f0f0;
 }
 
-/* Zebra effect */
 .modal table tbody tr:nth-child(even) {
   background: #f7f9ff;
 }
 
-/* ===== 3 COLUMN CHART LAYOUT ===== */
 
 .charts-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);  /* 3 equal columns */
-  gap: 30px;
+  grid-template-columns: repeat(3, 1fr);  
   margin-top: 50px;
 }
 
@@ -668,16 +631,209 @@ body {
   height: 100% !important;
 }
 
-/* Tablet */
 @media (max-width: 1100px) {
   .charts-row {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-/* Mobile */
 @media (max-width: 700px) {
   .charts-row {
     grid-template-columns: 1fr;
+  }
+}
+
+.welcome-text {
+  margin-bottom: 20px;
+  color: #1e3c72;
+  font-weight: 600;
+}
+
+.chart-section {
+  margin-top: 30px;
+}
+
+
+
+
+.pos-wrapper {
+  padding: 20px;
+}
+
+.pos-top {
+  display: flex;
+  justify-content: space-between;
+  background: #1e3c72;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.pos-main {
+  display: flex;
+  margin-top: 20px;
+  gap: 20px;
+}
+
+.pos-left {
+  flex: 1;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.pos-right {
+  width: 400px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.product-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.product-card {
+  background: #f4f6f9;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.product-card:hover {
+  background: #2a5298;
+  color: white;
+}
+
+.cart-table,
+.recent-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cart-table th,
+.cart-table td,
+.recent-table th,
+.recent-table td {
+  border-bottom: 1px solid #ddd;
+  padding: 6px;
+  text-align: left;
+}
+
+.cart-summary {
+  margin-top: 15px;
+}
+
+.checkout-btn {
+  width: 100%;
+  padding: 10px;
+  background: #28a745;
+  color: white;
+  border: none;
+  margin-top: 10px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.checkout-btn:hover {
+  background: #218838;
+}
+
+.pos-bottom {
+  margin-top: 30px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.product-card.out-of-stock {
+  background-color: #ff4d4d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.product-card.out-of-stock {
+  background-color: #ff4d4d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.product-card.low-stock {
+  background-color: #ffd966;
+}
+
+.remove-btn {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 12px;
+  transition: 0.2s ease;
+}
+
+.remove-btn:hover {
+  background-color: #cc0000;
+}
+
+.report-filter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.filter-left input {
+  margin-right: 10px;
+  padding: 6px;
+}
+
+.filter-right button {
+  margin-left: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.print-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+}
+
+.print-btn:hover {
+  background-color: #1e7e34;
+}
+
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #print-area,
+  #print-area * {
+    visibility: visible;
+  }
+
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  .report-filter,
+  .pos-top,
+  .pos-main,
+  .dashboard-cards,
+  .checkout-btn,
+  .remove-btn {
+    display: none !important;
   }
 }
