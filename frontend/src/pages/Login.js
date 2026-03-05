@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../services/api";
 
 function Login() {
   const [form, setForm] = useState({ username: "", password: "" });
@@ -16,10 +16,7 @@ function Login() {
     setMessage("");
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        form
-      );
+      const res = await API.post("/auth/login", form);
 
       localStorage.setItem("token", res.data.token);
 
@@ -58,9 +55,7 @@ function Login() {
             required
           />
 
-          <button type="submit">
-            Login
-          </button>
+          <button type="submit">Login</button>
         </form>
       </div>
     </div>
