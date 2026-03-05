@@ -1,15 +1,16 @@
 const mysql = require("mysql2/promise");
 
 const db = mysql.createPool({
-  host: "localhost",
+  host: "trolley.proxy.rlwy.net",
+  port: 40111,
   user: "root",
-  password: "",
-  database: "hmp_pos",
+  password: "lWQEHHmpVDAjGHcILQYEEgYmwjQippKr",
+  database: "railway",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
 });
 
-console.log("MySQL Pool Connected");
+console.log("Connected to Railway MySQL");
 
 module.exports = db;
