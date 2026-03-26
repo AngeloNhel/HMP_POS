@@ -222,7 +222,7 @@ gap:10px;
 }
 
 .pos-buttons button{
-padding:8px 16px;
+padding:8px 30px;
 border:none;
 border-radius:8px;
 
@@ -463,4 +463,140 @@ border-radius:4px;
 .func-btn:hover{
 transform:scale(1.05);
 box-shadow:0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* DROPDOWN */
+.dropdown {
+  position: relative;
+}
+
+.dropdown button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  background: #1e3c72; /* same as navbar */
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  overflow: hidden;
+  min-width: 180px;
+  z-index: 100;
+}
+
+.dropdown-menu button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dropdown-menu button:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+/* HIGHLIGHT ROW TABLE */
+.modern-table tbody tr:hover {
+  background-color: #b0ffa6;
+  cursor: pointer;
+}
+
+/* HIGHLIGHT ADDED CART */
+.highlight-row {
+  background-color: #ffe082;
+  animation: highlightFade 1s ease;
+}
+
+@keyframes highlightFade {
+  from {
+    background-color: #ffd54f;
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 999;
+}
+
+.modal {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  width: 350px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal h2 {
+  margin-bottom: 15px;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-body input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.modal-actions {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn-save {
+  background: #1e3c72;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-close {
+  background: red;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

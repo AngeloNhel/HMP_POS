@@ -11,6 +11,8 @@ FaPrint,
 FaPlus, 
 FaPowerOff 
 } from "react-icons/fa";
+import API from "../services/api";
+import ProductModal from "../components/modals/ProductModal";
 
 function AdminDashboard() {
 
@@ -18,25 +20,156 @@ function AdminDashboard() {
   const [orNumber, setOrNumber] = useState("");
   const [description, setDescription] = useState("");
   const [customer, setCustomer] = useState("");
+  const [products, setProducts] = useState([]);
+  const [barcode, setBarcode] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [cart, setCart] = useState([]);
+  const [highlightId, setHighlightId] = useState(null);
 
 
+  
 
+// HANDLES KEYBOARD SHORTCUTS
+useEffect(() => {
+  const handleKeyPress = (e) => {
+    // 🔥 prevent conflict when modal is open
+    if (showModal) return;
+
+    // 🔥 ignore if typing in input fields
+    const tag = document.activeElement.tagName;
+    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+
+    if (e.key.toLowerCase() === "i") {
+      setView("items");
+    }
+
+    if (e.key.toLowerCase() === "c") {
+      setView("cart");
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyPress);
+
+  return () => {
+    window.removeEventListener("keydown", handleKeyPress);
+  };
+}, [showModal]);
+
+// HANDLES DOUBLE CLICK ON PRODUCT ROW
+  const handleRowDoubleClick = (product) => {
+    // 🔥 set barcode (for visual)
+    setBarcode(product.code);
+
+    // 🔥 set selected product
+    setSelectedProduct(product);
+
+    // 🔥 open modal (same as Enter)
+    setShowModal(true);
+  };
+
+//  COMPUTE SUBTOTAL
+  const subtotal = cart.reduce(
+    (sum, item) => sum + item.price * item.qty,
+    0
+  );
+
+  // CART FUNCTION
+    const handleAddToCart = (product, qty = 1) => {
+      setCart((prevCart) => {
+        const existing = prevCart.find((item) => item.code === product.code);
+
+        if (existing) {
+
+          // 🔥 highlight existing item
+          setHighlightId(existing.id);
+
+          return prevCart.map((item) =>
+            item.code === product.code
+              ? { ...item, qty: item.qty + qty }
+              : item
+          );
+        }
+
+        // 🔥 highlight new item
+        setHighlightId(product.id);
+
+        return [
+          ...prevCart,
+          {
+            id: product.id,
+            code: product.code,
+            name: product.description,
+            price: product.price,
+            qty: qty,
+          },
+        ];
+      });
+
+      // ✅ CLOSE MODAL
+      setShowModal(false);
+
+      // ✅ SWITCH TO CART VIEW
+      setView("cart");
+
+    
+
+      // 🔥 REMOVE HIGHLIGHT AFTER 1 SECOND
+      setTimeout(() => {
+        setHighlightId(null);
+      }, 1000);
+    };
+
+
+  // HANDLE BARCODE INPUT
+  const handleBarcodeKeyDown = (e) => {
+  if (showModal) return; // 🔥 IMPORTANT BLOCK
+
+  if (e.key === "Enter") {
+    const foundProduct = products.find(
+      (p) => p.code.toLowerCase() === barcode.toLowerCase()
+    );
+
+    if (foundProduct) {
+      setSelectedProduct(foundProduct);
+      setShowModal(true); // ✅ ONLY OPEN MODAL
+    } else {
+      alert("Product not found");
+    }
+
+    setBarcode("");
+  }
+};
+
+  // FETCH PRODUCTS
+  const fetchProducts = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await API.get("/products", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setProducts(res.data);
+    } catch (err) {
+      console.error("FETCH ERROR:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = products.filter((product) =>
+    product.description.toLowerCase().includes(description.toLowerCase())
+  );
 
   useEffect(() => {
     const randomOR = "OR-" + Math.floor(100000 + Math.random() * 900000);
     setOrNumber(randomOR);
   }, []);
-
-  const items = [
-    { id: 1, name: "Coke", price: 20 },
-    { id: 2, name: "Pepsi", price: 18 },
-    { id: 3, name: "Sprite", price: 19 }
-  ];
-
-  const cart = [
-    { id: 1, name: "Coke", price: 20, qty: 1 },
-    { id: 2, name: "Sprite", price: 19, qty: 2 }
-  ];
 
   const customers = ["Walk-in", "Juan Dela Cruz", "Maria Santos", "Pedro Reyes"];
 
@@ -86,31 +219,43 @@ function AdminDashboard() {
 
             </div>
 
-            <div className="pos-buttons">
-              <button onClick={() => setView("items")}>Items</button>
-              <button onClick={() => setView("cart")}>Cart</button>
-            </div>
+         <div className="pos-buttons">
+            <button className="func-btn" onClick={() => setView("items")}>
+              <span className="key">I</span>
+              <p>Items</p>
+            </button>
 
+            <button className="func-btn" onClick={() => setView("cart")}>
+              <span className="key">C</span>
+              <p>Cart</p>
+            </button>
+          </div>
           </div>
 
           {view === "items" && (
             <table className="modern-table">
               <thead>
                 <tr>
-                  <th>Description</th>
-                  <th>Unit</th>
-                  <th>Code</th>
-                  <th>Price</th>
-                  <th>Qty</th>
+                  <th>DESCRIPTION</th>
+                  <th>UNIT</th>
+                  <th>CODE</th>
+                  <th>PRICE</th>
+                  <th>QTY</th>
                 </tr>
               </thead>
 
               <tbody>
-                {items.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.id}</td>
-                    <td>{item.name}</td>
-                    <td>₱{item.price}</td>
+                {filteredProducts.map((product) => (
+                  <tr
+                    key={product.id}
+                    onDoubleClick={() => handleRowDoubleClick(product)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <td>{product.description}</td>
+                    <td>{product.unit || "pcs"}</td>
+                    <td>{product.code}</td>
+                    <td>₱{product.price}</td>
+                    <td>{product.stock}</td>
                   </tr>
                 ))}
               </tbody>
@@ -131,11 +276,15 @@ function AdminDashboard() {
 
               <tbody>
                 {cart.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.id}</td>
+                  <tr
+                    key={item.id}
+                    className={highlightId === item.id ? "highlight-row" : ""}
+                  >
                     <td>{item.name}</td>
+                    <td>pcs</td>
                     <td>₱{item.price}</td>
                     <td>{item.qty}</td>
+                    <td>₱{item.price * item.qty}</td>
                   </tr>
                 ))}
               </tbody>
@@ -151,11 +300,17 @@ function AdminDashboard() {
             <h3>Checkout</h3>
               <div className="pos-field">
                 <label>Barcode: </label>
-                <input type="text" placeholder="Scan or enter barcode" />
+                <input
+                  type="text"
+                  placeholder="Scan or enter barcode"
+                  value={barcode}
+                  onChange={(e) => setBarcode(e.target.value)}
+                  onKeyDown={handleBarcodeKeyDown}
+                />
               </div>
               <div className="pos-field">
                 <label>Subtotal: </label>
-                <input type="text" placeholder="₱0.00" />  
+                <input type="text" value={`₱${subtotal}`} readOnly />  
               </div>  
               <div className="pos-field">
                 <label>Discount: </label>
@@ -242,7 +397,7 @@ function AdminDashboard() {
 
           <div className="logo-card">
             <img 
-              src="https://scontent.fceb3-1.fna.fbcdn.net/v/t39.30808-6/437875199_122098649174283364_1014770551408359189_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=1d70fc&_nc_eui2=AeEF3j-UJ-ZMUWce3217UrzW7V_aw40f-eHtX9rDjR_54ZNQ3OE4Ho1Dx8KUy0j_fL5Ugdl2pENQrqt_cdgrYHWv&_nc_ohc=7sDi_JE8KZ0Q7kNvwEwFPgo&_nc_oc=AdmyAdi8oSH3eOo5_jc9aNuBVgAeilJcNCwwOW8yJ3bUfXU28AnjVeEMhSaEWGccPfM&_nc_zt=23&_nc_ht=scontent.fceb3-1.fna&_nc_gid=Xn7bmUfJVJ4ICjL9kSxt7w&_nc_ss=8&oh=00_AfwCPFk43ZZgXCk7V7-wma5sXxFW2INKFYN9Gqtzh8eU5g&oe=69B7E9B5"
+              src="https://scontent.fceb3-1.fna.fbcdn.net/v/t39.30808-6/437875199_122098649174283364_1014770551408359189_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=1d70fc&_nc_eui2=AeEF3j-UJ-ZMUWce3217UrzW7V_aw40f-eHtX9rDjR_54ZNQ3OE4Ho1Dx8KUy0j_fL5Ugdl2pENQrqt_cdgrYHWv&_nc_ohc=6RNOZ6YqtrEQ7kNvwF2LDQN&_nc_oc=AdrQ1YrLgXXQIJGW0sRhF9QW9b8KLQYdmdRMsy67ahHoWTOsWxFP70TPRZ28SG53xoM&_nc_zt=23&_nc_ht=scontent.fceb3-1.fna&_nc_gid=ufudNModo8efUcvbn6WpOg&_nc_ss=7a32e&oh=00_Afw8yDVYMBoRWD5htMLogAAMSn-DbtfLGIeI47wOt8khIw&oe=69CA96F5"
               alt="Company Logo"
               className="logo-image"
             />
@@ -251,8 +406,18 @@ function AdminDashboard() {
         </div>
 
       </div>
+       <ProductModal
+      show={showModal}
+      product={selectedProduct}
+      onClose={() => setShowModal(false)}
+      onAdd={handleAddToCart}
+    />
     </>
+    
   );
+
+
+
 }
 
 export default AdminDashboard;
