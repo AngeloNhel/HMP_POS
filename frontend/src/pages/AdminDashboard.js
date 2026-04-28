@@ -1,5 +1,6 @@
 import Navbar from "../components/Navbar";
-import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import React, { useState, useEffect, useRef   } from "react";
 import { 
 FaSearch, 
 FaShoppingCart, 
@@ -32,8 +33,28 @@ function AdminDashboard() {
   const [customers, setCustomers] = useState([]);
   const [customer, setCustomer] = useState("");
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const barcodeRef = useRef(null);
 
+const handleCheckout = () => {
+  setShowCheckoutModal(true); // no OR yet
+};
+const generateOR = () => {
+  const now = new Date();
 
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  const datePart = `${year}${month}${day}`;
+
+  // 🔥 RANDOM 6 DIGITS
+  const random = Math.floor(100000 + Math.random() * 900000);
+
+  return `OR-${datePart}-${random}`;
+};
+useEffect(() => {
+  setOrNumber(generateOR()); // start
+}, []);
   // FETCH CUSTOMERS NAMES FROM SALES FOR DROPDOWN
 const fetchCustomers = async () => {
   try {
@@ -61,23 +82,28 @@ const handleConfirmCheckout = () => {
   setDiscount(0);
   setCustomer("");
   setBarcode("");
-  setView("items"); // go back to items
+  setView("items");
+  setOrNumber(generateOR());
 };
 // HANDLES KEYBOARD SHORTCUTS
 useEffect(() => {
   const handleKeyPress = (e) => {
+    // ✅ safety guard
+    if (!e || !e.key) return;
+
     // 🔥 prevent conflict when modal is open
     if (showModal) return;
 
     // 🔥 ignore if typing in input fields
-    const tag = document.activeElement.tagName;
+    const tag = document.activeElement?.tagName;
     if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
 
-    if (e.key.toLowerCase() === "i") {
+    // ✅ NO toLowerCase needed
+    if (e.key === "i" || e.key === "I") {
       setView("items");
     }
 
-    if (e.key.toLowerCase() === "c") {
+    if (e.key === "c" || e.key === "C") {
       setView("cart");
     }
   };
@@ -90,16 +116,27 @@ useEffect(() => {
 }, [showModal]);
 
 // HANDLES DOUBLE CLICK ON PRODUCT ROW
-  const handleRowDoubleClick = (product) => {
-    // 🔥 set barcode (for visual)
+ const handleRowDoubleClick = async (product) => {
+  if (Number(product.stock) === 0) return;
+
+  if (Number(product.stock) <= Number(product.critical_stocks || 0)) {
+    await Swal.fire({
+      icon: "warning",
+      title: "Low Stock",
+      text: `${product.description} only has ${product.stock} left.`,
+      showCloseButton: true,
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false
+    });
+  }
+
+  setTimeout(() => {
     setBarcode(product.code);
-
-    // 🔥 set selected product
     setSelectedProduct(product);
-
-    // 🔥 open modal (same as Enter)
     setShowModal(true);
-  };
+  }, 0);
+};
 
   //  COMPUTE SUBTOTAL
   const subtotal = cart.reduce(
@@ -146,6 +183,7 @@ useEffect(() => {
             name: product.description,
             price: product.price,
             qty: qty,
+            unit: product.item_unit,
           },
         ];
       });
@@ -166,23 +204,74 @@ useEffect(() => {
 
 
   // HANDLE BARCODE INPUT
-  const handleBarcodeKeyDown = (e) => {
-  if (showModal) return; // 🔥 IMPORTANT BLOCK
+const handleBarcodeKeyDown = async (e) => {
+  if (e.key !== "Enter") return;
 
-  if (e.key === "Enter") {
-    const foundProduct = products.find(
-      (p) => p.code.toLowerCase() === barcode.toLowerCase()
-    );
+  e.preventDefault();
+  e.stopPropagation();
 
-    if (foundProduct) {
-      setSelectedProduct(foundProduct);
-      setShowModal(true); // ✅ ONLY OPEN MODAL
-    } else {
-      alert("Product not found");
-    }
+  if (showModal) return;
 
-    setBarcode("");
+  const foundProduct = products.find(
+    (p) => p.code.toLowerCase() === barcode.toLowerCase()
+  );
+
+  if (!foundProduct) {
+    await Swal.fire({
+      icon: "error",
+      title: "Not Found",
+      text: "Product not found",
+      showCloseButton: true,
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false
+    });
+
+    setTimeout(() => setBarcode(""), 0);
+    return;
   }
+
+  // ❌ OUT OF STOCK
+  if (Number(foundProduct.stock) === 0) {
+    await Swal.fire({
+      icon: "error",
+      title: "Out of Stock",
+      text: `${foundProduct.description} is not available.`,
+      showCloseButton: true,
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false
+    });
+
+    setTimeout(() => setBarcode(""), 0);
+    return;
+  }
+
+  // ⚠ LOW STOCK
+  if (
+  Number(foundProduct.stock) <=
+  Number(foundProduct.critical_stocks || 0)
+) {
+    await Swal.fire({
+      icon: "warning",
+      title: "Low Stock",
+      text: `${foundProduct.description} only has ${foundProduct.stock} left.`,
+      showCloseButton: true,
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false
+    });
+  }
+
+  // ✅ OPEN MODAL AFTER ALERT
+  setTimeout(() => {
+  // 🔥 FORCE REMOVE FOCUS FROM BARCODE INPUT
+  barcodeRef.current?.blur();
+
+  setSelectedProduct(foundProduct);
+  setShowModal(true);
+  setBarcode("");
+}, 0);
 };
 
   // FETCH PRODUCTS
@@ -206,21 +295,23 @@ useEffect(() => {
     fetchProducts();
   }, []);
 
-  const filteredProducts = products.filter((product) =>
-    product.description.toLowerCase().includes(description.toLowerCase())
+const filteredProducts = products.filter((product) => {
+  const search = description?.toLowerCase() || "";
+
+  return (
+    (product.description || "").toLowerCase().includes(search) ||
+    (product.name || "").toLowerCase().includes(search) ||
+    (product.code || "").toLowerCase().includes(search)
   );
-
-  useEffect(() => {
-    const randomOR = "OR-" + Math.floor(100000 + Math.random() * 900000);
-    setOrNumber(randomOR);
-  }, []);
-
+});
 
   const title = view === "items" ? "Displayed Items" : "Customers Cart";
 
+ 
+
   return (
     <>
-      <Navbar />
+      <Navbar products={products}/>
 
       <div className="pos-container">
 
@@ -317,19 +408,48 @@ useEffect(() => {
               </thead>
 
               <tbody className="table-body-scroll">
-                {filteredProducts.map((product) => (
+              {filteredProducts.map((product) => {
+                const stock = Number(product.stock) || 0;
+                const critical = Number(product.critical_stocks) || 0;
+
+                const isOutOfStock = stock === 0;
+                const isLowStock = stock > 0 && stock <= critical;
+
+                return (
                   <tr
                     key={product.id}
-                    onDoubleClick={() => handleRowDoubleClick(product)}
+                    onDoubleClick={() => {
+                      if (!isOutOfStock) handleRowDoubleClick(product);
+                    }}
+                    className={
+                      isOutOfStock
+                        ? "out-of-stock"
+                        : isLowStock
+                        ? "low-stock"
+                        : ""
+                    }
+                    style={{
+                      cursor: isOutOfStock ? "not-allowed" : "pointer",
+                      opacity: isOutOfStock ? 0.6 : 1,
+                    }}
                   >
-                    <td>{product.description}</td>
-                    <td>{product.unit || "pcs"}</td>
+                    <td>
+                      {product.description}
+                      {isLowStock && (
+                        <span className="warning-text">Low Stock</span>
+                      )}
+                      {isOutOfStock && (
+                        <span className="danger-text">Out of Stock</span>
+                      )}
+                    </td>
+                   <td>{product.item_unit || "pcs"}</td>
                     <td>{product.code}</td>
                     <td>₱{product.price}</td>
                     <td>{product.stock}</td>
                   </tr>
-                ))}
-              </tbody>
+                );
+              })}
+            </tbody>
             </table>
           </div>
         )}
@@ -338,14 +458,13 @@ useEffect(() => {
             <table className="modern-table">
               <thead>
                 <tr>
-                  <th>Description</th>
-                  <th>Unit</th>
-                  <th>Price</th>
-                  <th>Qty</th>
-                  <th>Total</th>
+                  <th>DESCRIPTION</th>
+                  <th>UNIT</th>
+                  <th>PRICE</th>
+                  <th>QTY</th>
+                  <th>TOTAL</th>
                 </tr>
               </thead>
-
               <tbody className="table-body-scroll">
                 {cart.map((item) => (
                   <tr
@@ -353,7 +472,7 @@ useEffect(() => {
                     className={highlightId === item.id ? "highlight-row" : ""}
                   >
                     <td>{item.name}</td>
-                    <td>pcs</td>
+                    <td>{item.unit || "pcs"}</td>
                     <td>₱{item.price}</td>
                     <td>{item.qty}</td>
                     <td>₱{item.price * item.qty}</td>
@@ -372,8 +491,10 @@ useEffect(() => {
             <h3>Checkout</h3>
               <div className="pos-field">
                 <label>Barcode: </label>
-                <input
+               <input
+                  ref={barcodeRef}
                   type="text"
+                  disabled={showModal} // 🔥 THIS STOPS FOCUS STEALING
                   placeholder="Scan or enter barcode"
                   value={barcode}
                   onChange={(e) => setBarcode(e.target.value)}
@@ -424,7 +545,7 @@ useEffect(() => {
                         return;
                       }
 
-                      setShowCheckoutModal(true);
+                     handleCheckout();
                     }
                   }}
                   placeholder="0"
@@ -505,7 +626,7 @@ useEffect(() => {
 
           <div className="logo-card">
             <img 
-              src="https://scontent.fceb3-1.fna.fbcdn.net/v/t39.30808-6/437875199_122098649174283364_1014770551408359189_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=1d70fc&_nc_eui2=AeEF3j-UJ-ZMUWce3217UrzW7V_aw40f-eHtX9rDjR_54ZNQ3OE4Ho1Dx8KUy0j_fL5Ugdl2pENQrqt_cdgrYHWv&_nc_ohc=6RNOZ6YqtrEQ7kNvwF2LDQN&_nc_oc=AdrQ1YrLgXXQIJGW0sRhF9QW9b8KLQYdmdRMsy67ahHoWTOsWxFP70TPRZ28SG53xoM&_nc_zt=23&_nc_ht=scontent.fceb3-1.fna&_nc_gid=ufudNModo8efUcvbn6WpOg&_nc_ss=7a32e&oh=00_Afw8yDVYMBoRWD5htMLogAAMSn-DbtfLGIeI47wOt8khIw&oe=69CA96F5"
+              src="https://scontent.fmnl17-3.fna.fbcdn.net/v/t39.30808-6/437875199_122098649174283364_1014770551408359189_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=1d70fc&_nc_eui2=AeEF3j-UJ-ZMUWce3217UrzW7V_aw40f-eHtX9rDjR_54ZNQ3OE4Ho1Dx8KUy0j_fL5Ugdl2pENQrqt_cdgrYHWv&_nc_ohc=wlRtYh-Rv78Q7kNvwEcjGad&_nc_oc=AdqmSluHDg45bW64uWJv7gIfevMgtSjfMGW220T0UP5S54YRVpGQowGNbv1-zFCJHfo&_nc_zt=23&_nc_ht=scontent.fmnl17-3.fna&_nc_gid=_PpAwMzUBh2sQ2C9qi4N8g&_nc_ss=7a3a8&oh=00_Af3FqjpqJ93NwD2y5Y3Qlx6rXUs93Si-36gDVDOFpOH2Mw&oe=69E36B35"
               alt="Company Logo"
               className="logo-image"
             />
@@ -533,6 +654,7 @@ useEffect(() => {
       change={change}
       customer={customer}
       onRefresh={fetchProducts}
+      receiptNo={orNumber}
     />
     </>
     

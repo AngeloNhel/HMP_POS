@@ -545,7 +545,7 @@ box-shadow:0 4px 10px rgba(0,0,0,0.3);
   background: white;
   padding: 25px;
   border-radius: 15px;
-  width: 350px;
+  width: 550px;
   animation: fadeIn 0.2s ease-in-out;
 }
 
@@ -779,4 +779,54 @@ box-shadow:0 4px 10px rgba(0,0,0,0.3);
 .dropdown-list li:hover {
   background: #007bff;
   color: white;
+}
+
+
+/* LOW STOCK (<=5) */
+.low-stock {
+  background-color: #fff3cd !important;
+}
+
+/* OUT OF STOCK (0) */
+.out-of-stock {
+  background-color: #ff909a !important;
+}
+
+/* TEXT STYLES */
+.warning-text {
+  color: #856404;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.danger-text {
+  color: #721c24;
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.input-style {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 13px;
+  outline: none;
+  appearance: none; /* 🔥 removes default dropdown style */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #fff;
+}
+
+/* Focus like input */
+.input-style:focus {
+  border: 3px solid #000000; /* 🔥 2px border */
+  border-radius: 6px; /* 🔥 maintain rounded corners */
+}
+.input-style {
+  color: gray;
+}
+
+.input-style.has-value {
+  color: black;
 }

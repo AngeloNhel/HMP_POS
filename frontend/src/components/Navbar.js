@@ -18,7 +18,7 @@ import VoidTransactionModal from "./modals/VoidTransactionModal";
 
 
 
-function Navbar() {
+function Navbar({ products }) {
   const navigate = useNavigate();
   
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
@@ -196,7 +196,7 @@ function Navbar() {
       )}
 
       {activeModal === "criticalStocks" && (
-        <CriticalStocksModal onClose={closeModal} />
+        <CriticalStocksModal onClose={closeModal} products={products} />
       )}
 
       {activeModal === "voidTransactions" && (

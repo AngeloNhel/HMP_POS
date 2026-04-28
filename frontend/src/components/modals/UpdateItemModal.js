@@ -13,7 +13,7 @@ function UpdateItemModal({ onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2>Update Item</h2>
+        <h2>Update Items (Main Branch)</h2>
 
         <div className="modal-body">
           <input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Search Item..." />

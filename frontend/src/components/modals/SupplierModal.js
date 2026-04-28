@@ -1,14 +1,37 @@
 import React, { useState } from "react";
+import API from "../../services/api";
+import Swal from "sweetalert2";
 
 function SupplierModal({ onClose }) {
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [address, setAddress] = useState("");
 
-  const handleSave = () => {
-    console.log({ name, contact, address });
+  const handleSave = async () => {
+  try {
+    await API.post("/suppliers", {
+      supplier_name: name,
+      contact,
+      address,
+    });
+
+    Swal.fire({
+      icon: "success",
+      title: "Success!",
+      text: "Supplier added successfully",
+    });
+
     onClose();
-  };
+  } catch (err) {
+    console.log(err);
+
+    Swal.fire({
+      icon: "error",
+      title: "Error!",
+      text: "Failed to add supplier",
+    });
+  }
+};
 
   return (
     <div className="modal-overlay" onClick={onClose}>

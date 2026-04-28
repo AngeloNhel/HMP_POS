@@ -14,7 +14,8 @@ function CheckoutModal({
   tendered,
   change,
   customer,
-  onRefresh
+  onRefresh,
+  receiptNo
 
 }) {
   if (!show) return null;
@@ -23,34 +24,40 @@ function CheckoutModal({
     window.print();
   };
   // checkout modal reciept
-  const handleConfirm = async () => {
+ const handleConfirm = async () => {
   try {
-    await API.post("/sales/checkout", {
-      cart,
-      subtotal,
-      discount_percent: discount,
-      discount_amount: discountAmount,
-      total_amount: totalAmount,
-      tendered,
-      change_amount: change,
-      customer_name: customer,
-      user_id: 1 // replace with logged-in user
-    });
+    const res = await API.post("/sales/checkout", {
+  receipt_no: receiptNo, // ✅ SAME OR
+  cart,
+  subtotal,
+  discount_percent: discount,
+  discount_amount: discountAmount,
+  total_amount: totalAmount,
+  tendered,
+  change_amount: change,
+  customer_name: customer,
+  user_id: 1
+});
 
-   await Swal.fire({
+    const savedReceipt = res.data.receipt_no;
+
+    await Swal.fire({
       icon: "success",
       title: "Sale Completed",
-      text: "Transaction saved successfully!",
-      confirmButtonColor: "#28a745"
+      text: `Receipt ${savedReceipt}`,
+      timer: 1500,
+      showConfirmButton: false
     });
 
-    onConfirm(); 
-    onClose();   
-     onRefresh(); 
+    // ✅ UPDATE DASHBOARD OR
+    onConfirm(res.data.next_or);
+
+    onClose();
+    onRefresh();
 
   } catch (err) {
-    console.error("Checkout error:", err);
-    alert("Failed to save sale");
+    console.error(err);
+    Swal.fire("Error", "Failed to save sale", "error");
   }
 };
 
@@ -62,6 +69,7 @@ function CheckoutModal({
         <div className="receipt-header">
           <h2>SALES RECEIPT</h2>
           <p>HMP POS SYSTEM</p>
+          <p><strong>Receipt No:</strong> {receiptNo}</p>
           <p>
             <strong>Customer:</strong>{" "}
             {customer && customer.trim() !== "" ? customer : "Walk-in"}

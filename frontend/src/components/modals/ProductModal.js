@@ -1,20 +1,24 @@
 import React, { useRef, useEffect, useState } from "react";
+import Swal from "sweetalert2";
 
 function ProductModal({ show, product, onClose, onAdd }) {
   const modalRef = useRef(null);
   const [qty, setQty] = useState(1);
 
   // ✅ Reset qty + FORCE focus when modal opens
-  useEffect(() => {
-    if (show) {
-      setQty(1);
+ useEffect(() => {
+  if (show) {
+    setQty(1);
 
-      // 🔥 FORCE focus AFTER render
-      setTimeout(() => {
+    setTimeout(() => {
+      modalRef.current?.focus();
+
+      // 🔥 EXTRA FORCE (fallback)
+      document.activeElement !== modalRef.current &&
         modalRef.current?.focus();
-      }, 0);
-    }
-  }, [show]);
+    }, 50); // 👈 small delay beats browser focus
+  }
+}, [show]);
 
   if (!show || !product) return null;
 
@@ -34,8 +38,18 @@ function ProductModal({ show, product, onClose, onAdd }) {
           }
 
           // 🔥 PLUS / MINUS CONTROL
-          if (e.key === "+" || e.key === "=") {
-            setQty((prev) => prev + 1);
+        if (e.key === "+" || e.key === "=") {
+            setQty((prev) => {
+              if (prev >= product.stock) {
+                Swal.fire({
+                  icon: "warning",
+                  title: "Limited Stock",
+                  text: `Only ${product.stock} items available.`,
+                });
+                return prev; // ❌ don't increase
+              }
+              return prev + 1; // ✅ increase
+            });
           }
 
           if (e.key === "-" && qty > 1) {
@@ -58,7 +72,17 @@ function ProductModal({ show, product, onClose, onAdd }) {
         <div className="modal-actions">
           <button
             className="btn-save"
-            onClick={() => onAdd(product, qty)}
+            onClick={() => {
+              if (qty > product.stock) {
+                Swal.fire({
+                  icon: "warning",
+                  title: "Limited Stock",
+                  text: `Only ${product.stock} items available.`,
+                });
+                return;
+              }
+              onAdd(product, qty);
+            }}
           >
             Add to Cart
           </button>
